@@ -11,6 +11,7 @@
 
     <modules>
         <module>corgi-api</module>
+        <module>corgi-mapper</module>
     </modules>
 
     <properties>
