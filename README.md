@@ -27,7 +27,7 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMyEntity")
-    MyEntity map(@Producer MyDto dto);
+    MyEntity map(MyDto dto);
 
     @Init
     private MyEntity initMyEntity() {
@@ -65,7 +65,7 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping(read = "getFromMap")
-    MyEntity mapFromMap(@Producer Map<String, String> map);
+    MyEntity mapFromMap(Map<String, String> map);
 
     @Read
     private String getFromMap(@Producer Map<String, String> map, @FieldName String key) {
@@ -88,7 +88,7 @@ import java.util.Map;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMap", write = "putToMap")
-    Map<String, Object> mapToMap(@Producer @FieldsSource MyEntity entity);
+    Map<String, Object> mapToMap(@FieldsSource MyEntity entity);
 
     @Init
     private Map<String, Object> initMap() {
