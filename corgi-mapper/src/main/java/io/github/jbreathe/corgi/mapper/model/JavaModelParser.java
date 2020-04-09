@@ -89,7 +89,7 @@ public final class JavaModelParser {
         Struct producerStruct = parseStruct(producerTypeElement);
         Struct consumerStruct = parseStruct(consumerTypeElement);
         Struct fieldsSource;
-        if (producerTypeElement.getAnnotation(FieldsSource.class) != null) {
+        if (producerElement.getAnnotation(FieldsSource.class) != null) {
             fieldsSource = producerStruct;
         } else {
             fieldsSource = consumerStruct;

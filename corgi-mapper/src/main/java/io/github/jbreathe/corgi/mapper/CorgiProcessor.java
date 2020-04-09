@@ -32,7 +32,6 @@ import io.github.jbreathe.corgi.mapper.source.SourceFilesParser;
 import io.github.jbreathe.corgi.mapper.source.SourceFilesSpoonParser;
 import io.github.jbreathe.corgi.mapper.source.SourceMethod;
 import io.github.jbreathe.corgi.mapper.util.BeanUtil;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -195,30 +194,26 @@ public class CorgiProcessor extends AbstractProcessor {
         }
     }
 
-    @NotNull
+    // Generation with JavaPoet
+
     private JavaFile generateJavaFile(MappingClass mappingClass, TypeSpec mapperImpl) {
         return JavaFile.builder(mappingClass.getType().getPackage(), mapperImpl)
                 .skipJavaLangImports(true)
-                .indent("    ")
+                .indent(" ".repeat(4))
                 .build();
     }
 
-    // Generation with JavaPoet
-
     private TypeSpec.Builder generateMapperImpl(MappingClass mappingClass) {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(mappingClass.getType().getSimpleName() + "Impl");
-        Type type = mappingClass.getType();
-        builder.addSuperinterface(classNameFromRawType(type));
-        builder.addModifiers(Modifier.PUBLIC);
-        return builder;
+        return TypeSpec.classBuilder(mappingClass.getType().getSimpleName() + "Impl")
+                .addSuperinterface(classNameFromRawType(mappingClass.getType()))
+                .addModifiers(Modifier.PUBLIC);
     }
 
     private MethodSpec.Builder generatePublicMethod(MappingMethod mappingMethod) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(mappingMethod.getName());
-        builder.addModifiers(Modifier.PUBLIC);
-        builder.addAnnotation(Override.class);
-        builder.returns(typeName(mappingMethod.getResultType()));
-        return builder;
+        return MethodSpec.methodBuilder(mappingMethod.getName())
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(typeName(mappingMethod.getResultType()));
     }
 
     private MethodSpec.Builder generatePrivateMethodsSignature(SourceMethod method) {

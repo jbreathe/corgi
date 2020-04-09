@@ -135,7 +135,7 @@ public final class MappingMethod {
         Builder customMethodsFromMapping(@NotNull Mapping mapping) {
             this.initName = mapping.init();
             this.readName = mapping.read();
-            this.writeName = mapping.init();
+            this.writeName = mapping.write();
             return this;
         }
 
