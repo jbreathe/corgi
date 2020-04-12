@@ -112,3 +112,9 @@ public class App {
     }
 }
 ```
+
+### How to build
+
+- Install Maven (3.3.1 or later) and add it's "bin" folder to "PATH".
+- Use Maven to test or build a project. For example, run ```mvn clean test``` to run tests;
+- If you're using Intellij IDEA, add ```--enable-preview``` to Maven -> Runner -> VM Options.

@@ -17,6 +17,7 @@
         <javapoet.version>1.11.1</javapoet.version>
         <spoon-core.version>8.0.0</spoon-core.version>
         <assertj.version>3.11.1</assertj.version>
+        <compile-testing.version>0.18</compile-testing.version>
     </properties>
 
     <dependencies>
@@ -54,6 +55,13 @@
             <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.testing.compile</groupId>
+            <artifactId>compile-testing</artifactId>
+            <version>${compile-testing.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -72,6 +80,19 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <release>14</release>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>--enable-preview</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>

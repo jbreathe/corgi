@@ -20,8 +20,8 @@ import javax.annotation.processing.Filer;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.Reader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -40,8 +40,8 @@ public final class SourceFilesSpoonParser implements SourceFilesParser {
 
     @Override
     public SourceFile parse(Type type) {
-        String fileLocation = fileLocation(type);
-        String content = readAllLines(fileLocation);
+        FileObject fileObject = getFileObject(type);
+        String content = readAllLines(fileObject);
         CtInterface<?> ctInterface = parseInterface(content);
 
         List<CtMethod<?>> ctPrivateMethods = ctInterface.getElements(CtModifiable::isPrivate);
@@ -73,11 +73,10 @@ public final class SourceFilesSpoonParser implements SourceFilesParser {
         return new SourceFile(imports, privateMethods);
     }
 
-    private String fileLocation(Type type) {
+    private FileObject getFileObject(Type type) {
         try {
-            FileObject fileObject = filer.getResource(StandardLocation.SOURCE_PATH, type.getPackage(),
+            return filer.getResource(StandardLocation.SOURCE_PATH, type.getPackage(),
                     type.getSimpleName() + ".java");
-            return fileObject.getName();
         } catch (IOException e) {
             throw new SourceParsingException(e);
         }
@@ -99,9 +98,12 @@ public final class SourceFilesSpoonParser implements SourceFilesParser {
     }
 
     @NotNull
-    private String readAllLines(String fileLocation) {
-        try {
-            return String.join("\n", Files.readAllLines(Paths.get(fileLocation)));
+    private String readAllLines(FileObject fileObject) {
+        // or fileObject.getCharContent(false) <- will return CharSeq
+        try (Reader reader = fileObject.openReader(false)) {
+            StringWriter out = new StringWriter();
+            reader.transferTo(out);
+            return out.toString();
         } catch (IOException e) {
             throw new SourceParsingException(e);
         }
