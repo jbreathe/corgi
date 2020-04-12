@@ -82,13 +82,12 @@ If you want to change this behaviour, you can use *@Write* annotation (see examp
 ```java
 import io.github.jbreathe.corgi.api.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMap", write = "putToMap")
-    Map<String, Object> mapToMap(@FieldsSource MyEntity entity);
+    Map<String, Object> mapToMap(@Producer(fieldsSource = true) MyEntity entity);
 
     @Init
     private Map<String, Object> initMap() {

@@ -8,4 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.PARAMETER)
 public @interface Producer {
+    boolean fieldsSource() default false;
 }

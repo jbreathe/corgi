@@ -2,7 +2,6 @@ package io.github.jbreathe.corgi.mapper.model;
 
 import io.github.jbreathe.corgi.api.Consumer;
 import io.github.jbreathe.corgi.api.FieldName;
-import io.github.jbreathe.corgi.api.FieldsSource;
 import io.github.jbreathe.corgi.api.Init;
 import io.github.jbreathe.corgi.api.Mapping;
 import io.github.jbreathe.corgi.api.Producer;
@@ -81,15 +80,13 @@ public final class JavaModelParser {
 
     @NotNull
     private MappingMethod parseMappingMethod(ExecutableElement methodElement) {
-        validateFieldsSource(methodElement);
-
         VariableElement producerElement = getProducerForMapping(methodElement);
         Element producerTypeElement = types.asElement(producerElement.asType());
         Element consumerTypeElement = types.asElement(methodElement.getReturnType());
         Struct producerStruct = parseStruct(producerTypeElement);
         Struct consumerStruct = parseStruct(consumerTypeElement);
         Struct fieldsSource;
-        if (producerElement.getAnnotation(FieldsSource.class) != null) {
+        if (producerElement.getAnnotation(Producer.class) != null && producerElement.getAnnotation(Producer.class).fieldsSource()) {
             fieldsSource = producerStruct;
         } else {
             fieldsSource = consumerStruct;
@@ -211,16 +208,6 @@ public final class JavaModelParser {
                 .filter(v -> v.getAnnotation(Producer.class) != null)
                 .findFirst()
                 .orElseThrow();
-    }
-
-    private void validateFieldsSource(ExecutableElement methodElement) {
-        if (methodElement.getParameters().size() > 1) {
-            for (VariableElement parameter : methodElement.getParameters()) {
-                if (parameter.getAnnotation(FieldsSource.class) != null && parameter.getAnnotation(Producer.class) == null) {
-                    throw new ModelParsingException("Only producer or consumer can be a @FieldsSource", methodElement);
-                }
-            }
-        }
     }
 
     @NotNull
