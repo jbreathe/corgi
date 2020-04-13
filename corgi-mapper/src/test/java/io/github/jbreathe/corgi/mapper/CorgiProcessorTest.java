@@ -47,10 +47,11 @@ class CorgiProcessorTest {
         JavaFileObject input = JavaFileObjects.forSourceString("org.example.MyMapper", code);
         CorgiProcessor processor = new CorgiProcessor();
         Compiler javac = Compiler.javac()
-                .withOptions("--source", "8", "--target", "8")
-//                .withOptions("--release", "14")
+//                .withOptions("--source", "8", "--target", "8")
+                .withOptions("--release", "9")
                 .withProcessors(processor);
         Compilation compilation = javac.compile(input);
+        System.out.println(compilation.errors());
         assertEquals(0, compilation.errors().size());
     }
 }
