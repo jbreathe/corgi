@@ -21,13 +21,18 @@ public final class MappingClass {
      * {@link WriteMethod}'s by aliases (value of {@link io.github.jbreathe.corgi.api.Write#value()}).
      */
     private final Map<String, WriteMethod> writeMethods;
+    /**
+     * {@link PreConditionMethod}'s by aliases (value of {@link io.github.jbreathe.corgi.api.PreCondition#value()}).
+     */
+    private final Map<String, PreConditionMethod> preConditionMethods;
 
-    MappingClass(Type type, List<MappingMethod> mappingMethods, Map<String, InitMethod> initMethods, Map<String, ReadMethod> readMethods, Map<String, WriteMethod> writeMethods) {
+    MappingClass(Type type, List<MappingMethod> mappingMethods, Map<String, InitMethod> initMethods, Map<String, ReadMethod> readMethods, Map<String, WriteMethod> writeMethods, Map<String, PreConditionMethod> preConditionMethods) {
         this.type = type;
         this.mappingMethods = mappingMethods;
         this.initMethods = initMethods;
         this.readMethods = readMethods;
         this.writeMethods = writeMethods;
+        this.preConditionMethods = preConditionMethods;
     }
 
     public Type getType() {
@@ -51,5 +56,10 @@ public final class MappingClass {
     @Nullable
     public WriteMethod findWriteMethod(String name) {
         return writeMethods.get(name);
+    }
+
+    @Nullable
+    public PreConditionMethod findPreConditionMethod(String name) {
+        return preConditionMethods.get(name);
     }
 }

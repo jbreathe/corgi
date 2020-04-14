@@ -101,6 +101,45 @@ public interface MyMapper {
 }
 ```
 
+### Examples of pre-conditions
+
+```java
+import io.github.jbreathe.corgi.api.*;
+
+import java.util.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping(preCondition = "containsKey", read = "getFromMap")
+    MyEntity mapToEntity(Map<String, String> map);
+
+    @PreCondition
+    private boolean containsKey(@Producer Map<String, String> map, @FieldName String name) {
+        return map.containsKey(name);
+    }
+
+    @Read
+    private String getFromMap(@Producer Map<String, String> map, @FieldName String key) {
+        return map.get(key);
+    }
+}
+```
+or
+```java
+import io.github.jbreathe.corgi.api.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping(preCondition = "isNotNull")
+    MyEntity map(MyDto dto);
+
+    @PreCondition
+    private boolean isNotNull(@ReadResult Object result) {
+        return result != null;
+    }
+}
+```
+
 ### Getting instance of mapper
 
 ```java
