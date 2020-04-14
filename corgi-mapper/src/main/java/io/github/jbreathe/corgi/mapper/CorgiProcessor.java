@@ -61,7 +61,7 @@ public class CorgiProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         logger = new Logger(processingEnv.getMessager());
-        javaModelParser = new JavaModelParser(processingEnv.getTypeUtils());
+        javaModelParser = new JavaModelParser(processingEnv.getTypeUtils(), processingEnv.getElementUtils());
         sourceFilesParser = new SourceFilesSpoonParser(processingEnv.getFiler());
     }
 

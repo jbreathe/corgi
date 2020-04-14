@@ -87,7 +87,8 @@ import java.util.*;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMap", write = "putToMap")
-    Map<String, Object> writeExample(@Producer(fieldsSource = true) MyEntity entity);
+    @FieldsSource(MyEntity.class)
+    Map<String, Object> writeExample(MyEntity entity);
 
     @Init
     private Map<String, Object> initMap() {
@@ -100,6 +101,9 @@ public interface MyMapper {
     }
 }
 ```
+@FieldsSource explicitly defines the source of the field information.
+
+For Java 8 just replace private with default in the example above.
 
 ### Examples of pre-conditions
 
@@ -149,7 +153,8 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping
-    MyEntity recordExample(@Producer(fieldsSource = true) MyRecord myRecord);
+    @FieldsSource(MyRecord.class)
+    MyEntity recordExample(MyRecord myRecord);
 }
 ```
 
