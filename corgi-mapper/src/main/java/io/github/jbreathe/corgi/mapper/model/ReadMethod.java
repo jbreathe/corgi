@@ -43,6 +43,9 @@ public final class ReadMethod {
         return parameters.stream().map(p -> {
             if (p.isAnnotationPresents(ApiAnnotations.FIELD_NAME)) {
                 return new StringValue(field.getName());
+            } else if (p.isAnnotationPresents(ApiAnnotations.PRODUCER)) {
+                VarDeclaration consumerVar = mappingMethod.getProducerVar();
+                return TypeMapper.tryMap(consumerVar.createReference(), p.getTypeDeclaration());
             } else {
                 VarDeclaration parameter = mappingMethod.findParameter(p.getName());
                 if (parameter == null) {

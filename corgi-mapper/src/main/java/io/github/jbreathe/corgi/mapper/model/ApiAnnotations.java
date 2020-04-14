@@ -17,6 +17,7 @@ import java.util.Set;
 public final class ApiAnnotations {
     public static final Annotation FIELD_NAME = new Annotation(FieldName.class.getName());
     public static final Annotation CONSUMER = new Annotation(Consumer.class.getName());
+    public static final Annotation PRODUCER = new Annotation(Producer.class.getName());
     public static final Annotation READ_RESULT = new Annotation(ReadResult.class.getName());
 
     public static final Set<String> NAMES = Set.of(
