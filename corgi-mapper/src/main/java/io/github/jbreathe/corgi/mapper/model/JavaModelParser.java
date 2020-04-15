@@ -253,10 +253,9 @@ public final class JavaModelParser {
         if (typeMirror.getKind() == TypeKind.VOID || typeMirror.getKind().isPrimitive()) {
             return TypeDeclaration.rawDeclaration(Type.fromFullName(typeMirror.toString()));
         }
-        Type type = createType(typeMirror);
         TypeParametersVisitor visitor = new TypeParametersVisitor(types);
         List<TypeDeclaration> typeParameters = typeMirror.accept(visitor, null);
-        return TypeDeclaration.parameterizedDeclaration(type, typeParameters);
+        return TypeDeclaration.parameterizedDeclaration(createType(typeMirror), typeParameters);
     }
 
     @NotNull
