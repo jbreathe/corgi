@@ -75,7 +75,7 @@ public final class SourceFilesSpoonParser implements SourceFilesParser {
 
     private FileObject getFileObject(Type type) {
         try {
-            return filer.getResource(StandardLocation.SOURCE_PATH, type.getPackage(),
+            return filer.getResource(StandardLocation.CLASS_PATH, type.getPackage(),
                     type.getSimpleName() + ".java");
         } catch (IOException e) {
             throw new SourceParsingException(e);
@@ -100,10 +100,8 @@ public final class SourceFilesSpoonParser implements SourceFilesParser {
     @NotNull
     private String readAllLines(FileObject fileObject) {
         // or fileObject.getCharContent(false) <- will return CharSeq
-        try (Reader reader = fileObject.openReader(false)) {
-            StringWriter out = new StringWriter();
-            reader.transferTo(out);
-            return out.toString();
+        try {
+            return fileObject.getCharContent(false).toString();
         } catch (IOException e) {
             throw new SourceParsingException(e);
         }

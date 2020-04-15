@@ -44,7 +44,8 @@ class CorgiProcessorTest {
                     }
                 }
                 """;
-        JavaFileObject input = JavaFileObjects.forSourceString("org.example.MyMapper", code);
+//        JavaFileObject input = JavaFileObjects.forSourceString("org.example.MyMapper", code);
+        JavaFileObject input = JavaFileObjects.forResource("MyMapper.java");
         CorgiProcessor processor = new CorgiProcessor();
         Compiler compiler = Compiler.javac()
 //                .withOptions("--source", "8", "--target", "8")
