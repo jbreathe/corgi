@@ -27,7 +27,7 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMyEntity")
-    MyEntity map(MyDto dto);
+    MyEntity initExample(MyDto dto);
 
     @Init
     private MyEntity initMyEntity() {
@@ -45,7 +45,7 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMyEntityWithParameters")
-    MyEntity anotherMap(@Producer MyDto dto, Class<?> clazz);
+    MyEntity initWithParametersExample(@Producer MyDto dto, Class<?> clazz);
 
     @Init
     private MyEntity initMyEntityWithParameters(Class<?> clazz) {
@@ -65,7 +65,7 @@ import io.github.jbreathe.corgi.api.*;
 @Mapper
 public interface MyMapper {
     @Mapping(read = "getFromMap")
-    MyEntity mapFromMap(Map<String, String> map);
+    MyEntity readExample(Map<String, String> map);
 
     @Read
     private String getFromMap(@Producer Map<String, String> map, @FieldName String key) {
@@ -87,7 +87,7 @@ import java.util.*;
 @Mapper
 public interface MyMapper {
     @Mapping(init = "initMap", write = "putToMap")
-    Map<String, Object> mapToMap(@Producer(fieldsSource = true) MyEntity entity);
+    Map<String, Object> writeExample(@Producer(fieldsSource = true) MyEntity entity);
 
     @Init
     private Map<String, Object> initMap() {
@@ -97,6 +97,45 @@ public interface MyMapper {
     @Write
     private void putToMap(@Consumer Map<String, Object> map, @FieldName String key, @ReadResult Object value) {
         map.put(key, value);
+    }
+}
+```
+
+### Examples of pre-conditions
+
+```java
+import io.github.jbreathe.corgi.api.*;
+
+import java.util.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping(preCondition = "containsKey", read = "getFromMap")
+    MyEntity preConditionExample(Map<String, String> map);
+
+    @PreCondition
+    private boolean containsKey(@Producer Map<String, String> map, @FieldName String name) {
+        return map.containsKey(name);
+    }
+
+    @Read
+    private String getFromMap(@Producer Map<String, String> map, @FieldName String key) {
+        return map.get(key);
+    }
+}
+```
+or
+```java
+import io.github.jbreathe.corgi.api.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping(preCondition = "isNotNull")
+    MyEntity preConditionExample(MyDto dto);
+
+    @PreCondition
+    private boolean isNotNull(@ReadResult Object result) {
+        return result != null;
     }
 }
 ```

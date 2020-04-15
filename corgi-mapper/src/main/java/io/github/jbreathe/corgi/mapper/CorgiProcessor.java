@@ -8,7 +8,9 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import io.github.jbreathe.corgi.api.Mapper;
 import io.github.jbreathe.corgi.mapper.codegen.Assignment;
+import io.github.jbreathe.corgi.mapper.codegen.BooleanExpression;
 import io.github.jbreathe.corgi.mapper.codegen.Expression;
+import io.github.jbreathe.corgi.mapper.codegen.IfStatement;
 import io.github.jbreathe.corgi.mapper.codegen.MethodCall;
 import io.github.jbreathe.corgi.mapper.codegen.VarReference;
 import io.github.jbreathe.corgi.mapper.model.CustomMethodModifier;
@@ -19,6 +21,7 @@ import io.github.jbreathe.corgi.mapper.model.JavaModelParser;
 import io.github.jbreathe.corgi.mapper.model.MappingClass;
 import io.github.jbreathe.corgi.mapper.model.MappingMethod;
 import io.github.jbreathe.corgi.mapper.model.ModelParsingException;
+import io.github.jbreathe.corgi.mapper.model.PreConditionMethod;
 import io.github.jbreathe.corgi.mapper.model.ReadMethod;
 import io.github.jbreathe.corgi.mapper.model.Setter;
 import io.github.jbreathe.corgi.mapper.model.Struct;
@@ -32,6 +35,7 @@ import io.github.jbreathe.corgi.mapper.source.SourceFilesParser;
 import io.github.jbreathe.corgi.mapper.source.SourceFilesSpoonParser;
 import io.github.jbreathe.corgi.mapper.source.SourceMethod;
 import io.github.jbreathe.corgi.mapper.util.BeanUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -110,25 +114,7 @@ public class CorgiProcessor extends AbstractProcessor {
                     methodBuilder.addParameter(typeName(parameter.getTypeDeclaration()), parameter.getName());
                 }
 
-                Struct consumer = mappingMethod.getConsumer();
-                Struct producer = mappingMethod.getProducer();
-
-                Expression initializer;
-                if (mappingMethod.withCustomInit()) {
-                    String initName = mappingMethod.getInitName();
-                    InitMethod initMethod = mappingClass.findInitMethod(initName);
-                    if (initMethod == null) {
-                        throw new ProcessingException("No methods found '" + initName + "' references to");
-                    }
-                    initializer = initMethod.generateCall(mappingMethod);
-                } else {
-                    DefaultConstructor defaultConstructor = consumer.getDefaultConstructor();
-                    if (defaultConstructor == null) {
-                        throw new ProcessingException("Default constructor in type '" + consumer.getType() + "' not found");
-                    }
-                    initializer = defaultConstructor.generateCall();
-                }
-
+                Expression initializer = generateInitializer(mappingClass, mappingMethod);
                 VarReference consumerVarReference = mappingMethod.getConsumerVar().createReference();
                 Assignment assignment = consumerVarReference.initWith(initializer);
                 methodBuilder.addStatement(assignment.asCode());
@@ -136,39 +122,17 @@ public class CorgiProcessor extends AbstractProcessor {
                 List<Field> fields = mappingMethod.getFieldsSource().getFields();
 
                 for (Field field : fields) {
-                    MethodCall readCall;
-                    if (mappingMethod.withCustomRead()) {
-                        String readName = mappingMethod.getReadName();
-                        ReadMethod readMethod = mappingClass.findReadMethod(readName);
-                        if (readMethod == null) {
-                            throw new ProcessingException("No methods found '" + readName + "' references to");
-                        }
-                        readCall = readMethod.generateCall(mappingMethod, field);
+                    MethodCall readCall = generateReadCall(mappingClass, mappingMethod, field);
+                    MethodCall writeCall = generateWriteCall(mappingClass, mappingMethod, readCall, field);
+                    if (mappingMethod.withCustomPreCondition()) {
+                        BooleanExpression preCondition = generatePreCondition(mappingClass, mappingMethod, readCall, field);
+                        IfStatement ifStatement = preCondition.wrapWithIf();
+                        methodBuilder.beginControlFlow(ifStatement.asCode())
+                                .addStatement(writeCall.asCode())
+                                .endControlFlow();
                     } else {
-                        String getterName = BeanUtil.getterName(field);
-                        Getter readMethod = producer.findGetter(getterName);
-                        if (readMethod == null) {
-                            throw new ProcessingException("Getter '" + getterName + "' not found in type '" + producer.getType() + "'");
-                        }
-                        readCall = readMethod.generateCall(mappingMethod.getProducerVar().createReference());
+                        methodBuilder.addStatement(writeCall.asCode());
                     }
-                    MethodCall writeCall;
-                    if (mappingMethod.withCustomWrite()) {
-                        String writeName = mappingMethod.getWriteName();
-                        WriteMethod writeMethod = mappingClass.findWriteMethod(writeName);
-                        if (writeMethod == null) {
-                            throw new ProcessingException("No methods found '" + writeName + "' references to");
-                        }
-                        writeCall = writeMethod.generateCall(mappingMethod, readCall, field);
-                    } else {
-                        String setterName = BeanUtil.setterName(field);
-                        Setter writeMethod = consumer.findSetter(setterName);
-                        if (writeMethod == null) {
-                            throw new ProcessingException("Setter '" + setterName + "' not found in type '" + consumer.getType() + "'");
-                        }
-                        writeCall = writeMethod.generateCall(consumerVarReference, readCall);
-                    }
-                    methodBuilder.addStatement(writeCall.asCode());
                 }
 
                 methodBuilder.addStatement(consumerVarReference.asResultStatement().asCode());
@@ -192,6 +156,73 @@ public class CorgiProcessor extends AbstractProcessor {
                 saveSourceFile(javaFile);
             }
         }
+    }
+
+    @NotNull
+    private Expression generateInitializer(MappingClass mappingClass, MappingMethod mappingMethod) {
+        if (mappingMethod.withCustomInit()) {
+            String initName = mappingMethod.getInitName();
+            InitMethod initMethod = mappingClass.findInitMethod(initName);
+            if (initMethod == null) {
+                throw new ProcessingException("No methods found '" + initName + "' references to");
+            }
+            return initMethod.generateCall(mappingMethod);
+        } else {
+            DefaultConstructor defaultConstructor = mappingMethod.getConsumer().getDefaultConstructor();
+            if (defaultConstructor == null) {
+                throw new ProcessingException("Default constructor in type '" + mappingMethod.getConsumer().getType() + "' not found");
+            }
+            return defaultConstructor.generateCall();
+        }
+    }
+
+    @NotNull
+    private MethodCall generateReadCall(MappingClass mappingClass, MappingMethod mappingMethod, Field field) {
+        if (mappingMethod.withCustomRead()) {
+            String readName = mappingMethod.getReadName();
+            ReadMethod readMethod = mappingClass.findReadMethod(readName);
+            if (readMethod == null) {
+                throw new ProcessingException("No methods found '" + readName + "' references to");
+            }
+            return readMethod.generateCall(mappingMethod, field);
+        } else {
+            String getterName = BeanUtil.getterName(field);
+            Struct producer = mappingMethod.getProducer();
+            Getter readMethod = producer.findGetter(getterName);
+            if (readMethod == null) {
+                throw new ProcessingException("Getter '" + getterName + "' not found in type '" + producer.getType() + "'");
+            }
+            return readMethod.generateCall(mappingMethod.getProducerVar().createReference());
+        }
+    }
+
+    @NotNull
+    private MethodCall generateWriteCall(MappingClass mappingClass, MappingMethod mappingMethod, MethodCall readCall, Field field) {
+        if (mappingMethod.withCustomWrite()) {
+            String writeName = mappingMethod.getWriteName();
+            WriteMethod writeMethod = mappingClass.findWriteMethod(writeName);
+            if (writeMethod == null) {
+                throw new ProcessingException("No methods found '" + writeName + "' references to");
+            }
+            return writeMethod.generateCall(mappingMethod, readCall, field);
+        } else {
+            String setterName = BeanUtil.setterName(field);
+            Struct consumer = mappingMethod.getConsumer();
+            Setter writeMethod = consumer.findSetter(setterName);
+            if (writeMethod == null) {
+                throw new ProcessingException("Setter '" + setterName + "' not found in type '" + consumer.getType() + "'");
+            }
+            return writeMethod.generateCall(mappingMethod.getConsumerVar().createReference(), readCall);
+        }
+    }
+
+    @NotNull
+    private BooleanExpression generatePreCondition(MappingClass mappingClass, MappingMethod mappingMethod, MethodCall readCall, Field field) {
+        PreConditionMethod preConditionMethod = mappingClass.findPreConditionMethod(mappingMethod.getPreConditionName());
+        if (preConditionMethod == null) {
+            throw new ProcessingException("No methods found '" + mappingMethod.getPreConditionName() + "' references to");
+        }
+        return preConditionMethod.generateCall(mappingMethod, readCall, field);
     }
 
     // Generation with JavaPoet

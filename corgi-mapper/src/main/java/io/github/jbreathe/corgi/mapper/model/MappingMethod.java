@@ -18,6 +18,7 @@ public final class MappingMethod {
     private final String initName;
     private final String readName;
     private final String writeName;
+    private final String preConditionName;
     private final Struct producer;
     private final VarDeclaration producerVar;
     private final Struct consumer;
@@ -27,7 +28,7 @@ public final class MappingMethod {
     private MappingMethod(String name, TypeDeclaration resultType,
                           List<VarDeclaration> parameters, Map<String, VarDeclaration> parametersMap,
                           String initName, String readName, String writeName,
-                          Struct producer, VarDeclaration producerVar,
+                          String preConditionName, Struct producer, VarDeclaration producerVar,
                           Struct consumer, VarDeclaration consumerVar,
                           Struct fieldsSource) {
         this.name = name;
@@ -37,6 +38,7 @@ public final class MappingMethod {
         this.initName = initName;
         this.readName = readName;
         this.writeName = writeName;
+        this.preConditionName = preConditionName;
         this.producer = producer;
         this.producerVar = producerVar;
         this.consumer = consumer;
@@ -72,6 +74,10 @@ public final class MappingMethod {
         return !writeName.isEmpty();
     }
 
+    public boolean withCustomPreCondition() {
+        return !preConditionName.isEmpty();
+    }
+
     public String getInitName() {
         return initName;
     }
@@ -82,6 +88,10 @@ public final class MappingMethod {
 
     public String getWriteName() {
         return writeName;
+    }
+
+    public String getPreConditionName() {
+        return preConditionName;
     }
 
     public Struct getProducer() {
@@ -116,6 +126,7 @@ public final class MappingMethod {
         private String initName;
         private String readName;
         private String writeName;
+        private String preConditionName;
         private Struct producer;
         private VarDeclaration producerVar;
         private Struct consumer;
@@ -136,6 +147,7 @@ public final class MappingMethod {
             this.initName = mapping.init();
             this.readName = mapping.read();
             this.writeName = mapping.write();
+            this.preConditionName = mapping.preCondition();
             return this;
         }
 
@@ -167,7 +179,7 @@ public final class MappingMethod {
         MappingMethod build() {
             Map<String, VarDeclaration> parametersMap = parameters.stream().collect(Collectors.toMap(VarDeclaration::getName, v -> v));
             return new MappingMethod(name, resultType, parameters, parametersMap,
-                    initName, readName, writeName, producer, producerVar, consumer, consumerVar, fieldsSource);
+                    initName, readName, writeName, preConditionName, producer, producerVar, consumer, consumerVar, fieldsSource);
         }
     }
 }
