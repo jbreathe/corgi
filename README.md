@@ -140,6 +140,19 @@ public interface MyMapper {
 }
 ```
 
+### Records support
+
+Simple example of mapper using Record (Java 14 preview feature):
+```java
+import io.github.jbreathe.corgi.api.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping
+    MyEntity recordExample(@Producer(fieldsSource = true) MyRecord myRecord);
+}
+```
+
 ### Getting instance of mapper
 
 ```java

@@ -6,6 +6,9 @@ import io.github.jbreathe.corgi.mapper.codegen.MethodCall;
 import io.github.jbreathe.corgi.mapper.model.core.Type;
 import io.github.jbreathe.corgi.mapper.model.core.TypeDeclaration;
 
+/**
+ * Read accessor without parameters.
+ */
 public final class Getter {
     private static final String WRONG_CONSUMER_TYPE = "The 'consumer' [%s] passed to the setter '%s' doesn't match consumer's declared type";
 

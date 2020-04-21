@@ -10,6 +10,9 @@ import io.github.jbreathe.corgi.mapper.model.core.VarDeclaration;
 
 import java.util.List;
 
+/**
+ * Write accessor with one parameter.
+ */
 public final class Setter {
     private static final String WRONG_CONSUMER_TYPE = "The 'consumer' [%s] passed to the setter '%s' doesn't match consumer's declared type";
     private static final String WRONG_ARGUMENT_TYPE = "Argument [%s] passed to the setter '%s' doesn't match argument's declared type";
