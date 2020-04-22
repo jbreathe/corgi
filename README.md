@@ -140,6 +140,19 @@ public interface MyMapper {
 }
 ```
 
+### Records support
+
+Simple example of mapper using Record (Java 14 preview feature):
+```java
+import io.github.jbreathe.corgi.api.*;
+
+@Mapper
+public interface MyMapper {
+    @Mapping
+    MyEntity recordExample(@Producer(fieldsSource = true) MyRecord myRecord);
+}
+```
+
 ### Getting instance of mapper
 
 ```java
@@ -151,3 +164,9 @@ public class App {
     }
 }
 ```
+
+### How to build
+
+- Install Maven (3.3.1 or later) and add it's "bin" folder to "PATH".
+- Use Maven to test or build a project. For example, run ```mvn clean test``` to run tests;
+- If you're using Intellij IDEA, add ```--enable-preview``` to Maven -> Runner -> VM Options.

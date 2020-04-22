@@ -3,6 +3,7 @@ package io.github.jbreathe.corgi.mapper.model;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -26,6 +27,10 @@ final class JavaModelUtil {
 
     static String variableName(VariableElement variableElement) {
         return variableElement.getSimpleName().toString();
+    }
+
+    static String variableName(RecordComponentElement recordComponentElement) {
+        return recordComponentElement.getSimpleName().toString();
     }
 
     static String variableTypeName(VariableElement variableElement) {

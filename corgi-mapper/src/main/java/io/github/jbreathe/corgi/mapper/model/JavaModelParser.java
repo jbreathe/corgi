@@ -21,6 +21,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -110,7 +111,7 @@ public final class JavaModelParser {
 
     private Struct parseStruct(Element typeElement) {
         if (typeElement.asType().getKind().isPrimitive()) {
-            throw new ModelParsingException("@Consumer, @Producer and @FieldsSource must be of reference type", typeElement);
+            throw new ModelParsingException("@Consumer and @Producer must be of reference type", typeElement);
         }
 
         Type structType = createType(typeElement.asType());
@@ -118,6 +119,16 @@ public final class JavaModelParser {
         List<Field> fields = new ArrayList<>();
         List<Getter> getters = new ArrayList<>();
         List<Setter> setters = new ArrayList<>();
+
+        if (typeElement.getKind() == ElementKind.RECORD) {
+            for (Element element : typeElement.getEnclosedElements()) {
+                if (element.getKind() == ElementKind.RECORD_COMPONENT && element instanceof RecordComponentElement recordComponent) {
+                    fields.add(createField(recordComponent));
+                    getters.add(createGetter(structType, recordComponent.getAccessor()));
+                }
+            }
+            return RecordStruct.create(structType, fields, getters);
+        }
 
         for (Element element : typeElement.getEnclosedElements()) {
             if (element.getKind() == ElementKind.CONSTRUCTOR) {
@@ -136,7 +147,7 @@ public final class JavaModelParser {
                 fields.add(createField((VariableElement) element));
             }
         }
-        return Struct.createStruct(structType, defaultConstructor, fields, getters, setters);
+        return BeanStruct.create(structType, defaultConstructor, fields, getters, setters);
     }
 
     private boolean isDefaultConstructor(ExecutableElement constructorElement) {
@@ -186,6 +197,10 @@ public final class JavaModelParser {
 
     private Field createField(VariableElement variableElement) {
         return new Field(createTypeDeclaration(variableElement.asType()), JavaModelUtil.variableName(variableElement));
+    }
+
+    private Field createField(RecordComponentElement recordComponentElement) {
+        return new Field(createTypeDeclaration(recordComponentElement.asType()), JavaModelUtil.variableName(recordComponentElement));
     }
 
     private boolean isMapMethod(ExecutableElement methodElement) {

@@ -34,7 +34,6 @@ import io.github.jbreathe.corgi.mapper.source.SourceFile;
 import io.github.jbreathe.corgi.mapper.source.SourceFilesParser;
 import io.github.jbreathe.corgi.mapper.source.SourceFilesSpoonParser;
 import io.github.jbreathe.corgi.mapper.source.SourceMethod;
-import io.github.jbreathe.corgi.mapper.util.BeanUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -186,11 +185,10 @@ public class CorgiProcessor extends AbstractProcessor {
             }
             return readMethod.generateCall(mappingMethod, field);
         } else {
-            String getterName = BeanUtil.getterName(field);
             Struct producer = mappingMethod.getProducer();
-            Getter readMethod = producer.findGetter(getterName);
+            Getter readMethod = producer.findGetter(field);
             if (readMethod == null) {
-                throw new ProcessingException("Getter '" + getterName + "' not found in type '" + producer.getType() + "'");
+                throw new ProcessingException("Getter for field '" + field.getName() + "' not found in type '" + producer.getType() + "'");
             }
             return readMethod.generateCall(mappingMethod.getProducerVar().createReference());
         }
@@ -206,11 +204,10 @@ public class CorgiProcessor extends AbstractProcessor {
             }
             return writeMethod.generateCall(mappingMethod, readCall, field);
         } else {
-            String setterName = BeanUtil.setterName(field);
             Struct consumer = mappingMethod.getConsumer();
-            Setter writeMethod = consumer.findSetter(setterName);
+            Setter writeMethod = consumer.findSetter(field);
             if (writeMethod == null) {
-                throw new ProcessingException("Setter '" + setterName + "' not found in type '" + consumer.getType() + "'");
+                throw new ProcessingException("Setter for field '" + field.getName() + "' not found in type '" + consumer.getType() + "'");
             }
             return writeMethod.generateCall(mappingMethod.getConsumerVar().createReference(), readCall);
         }
