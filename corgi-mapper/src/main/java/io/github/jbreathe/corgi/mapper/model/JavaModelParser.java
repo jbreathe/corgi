@@ -2,6 +2,7 @@ package io.github.jbreathe.corgi.mapper.model;
 
 import io.github.jbreathe.corgi.api.Consumer;
 import io.github.jbreathe.corgi.api.FieldName;
+import io.github.jbreathe.corgi.api.FieldsSource;
 import io.github.jbreathe.corgi.api.Init;
 import io.github.jbreathe.corgi.api.Mapping;
 import io.github.jbreathe.corgi.api.PreCondition;
@@ -17,6 +18,7 @@ import io.github.jbreathe.corgi.mapper.model.core.VarDeclaration;
 import org.jetbrains.annotations.NotNull;
 
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -26,20 +28,24 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public final class JavaModelParser {
     public static final String NOT_A_BOOLEAN_METHOD = "Method annotated with @PreCondition may return only primitive 'boolean' or 'java.lang.Boolean', but method '%s' returns '%s'";
 
     private final Types types;
+    private final Elements elements;
 
-    public JavaModelParser(Types types) {
+    public JavaModelParser(Types types, Elements elements) {
         this.types = types;
+        this.elements = elements;
     }
 
     public MappingClass parseToInternalRepresentation(TypeElement mapperElement, CustomMethodModifier customMethodModifier) {
@@ -93,8 +99,10 @@ public final class JavaModelParser {
         Struct producerStruct = parseStruct(producerTypeElement);
         Struct consumerStruct = parseStruct(consumerTypeElement);
         Struct fieldsSource;
-        if (producerElement.getAnnotation(Producer.class) != null && producerElement.getAnnotation(Producer.class).fieldsSource()) {
-            fieldsSource = producerStruct;
+        if (methodElement.getAnnotation(FieldsSource.class) != null) {
+            AnnotationMirror fieldsSourceMirror = getAnnotationMirror(methodElement.getAnnotationMirrors());
+            TypeMirror fieldsSourceAnnotationValue = fieldsSourceAnnotationValue(fieldsSourceMirror);
+            fieldsSource = parseStruct(types.asElement(fieldsSourceAnnotationValue));
         } else {
             fieldsSource = consumerStruct;
         }
@@ -425,5 +433,23 @@ public final class JavaModelParser {
     @NotNull
     private Annotation createAnnotation(AnnotationMirror annotationMirror) {
         return new Annotation(JavaModelUtil.annotationTypeName(annotationMirror));
+    }
+
+    private AnnotationMirror getAnnotationMirror(List<? extends AnnotationMirror> annotationMirrors) {
+        for (AnnotationMirror annotationMirror : annotationMirrors) {
+            if (types.isSameType(annotationMirror.getAnnotationType(), elements.getTypeElement(FieldsSource.class.getName()).asType())) {
+                return annotationMirror;
+            }
+        }
+        throw new NoSuchElementException("Annotation with type @FieldsSource not found");
+    }
+
+    private TypeMirror fieldsSourceAnnotationValue(AnnotationMirror annotationMirror) {
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
+            if ("value".equals(JavaModelUtil.methodName(entry.getKey()))) {
+                return (TypeMirror) entry.getValue().getValue();
+            }
+        }
+        throw new NoSuchElementException("@FieldsSource#value() not found");
     }
 }
