@@ -441,7 +441,7 @@ public final class JavaModelParser {
                 return annotationMirror;
             }
         }
-        throw new NoSuchElementException("Annotation with type @FieldsSource is not found");
+        throw new NoSuchElementException("Annotation with type @FieldsSource not found");
     }
 
     private TypeMirror fieldsSourceAnnotationValue(AnnotationMirror annotationMirror) {
