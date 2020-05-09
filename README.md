@@ -178,6 +178,6 @@ You will need:
 
 And that's it!
 
-Use Maven to test or build a project. For example, run ```mvn clean test``` to run tests;
+Use Maven to test or build a project. For example, run ```mvn clean test``` to run tests.
 
 **Note:** If you're using Intellij IDEA, add ```--enable-preview``` to Maven -> Runner -> VM Options.
