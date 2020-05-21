@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class RecordStruct implements Struct {
@@ -41,6 +42,11 @@ public final class RecordStruct implements Struct {
     @Override
     public List<Field> getFields() {
         return fields;
+    }
+
+    @Override
+    public @NotNull Optional<Field> getField(String name) {
+        return fields.stream().filter(field -> field.getName().equals(name)).findFirst();
     }
 
     @Nullable

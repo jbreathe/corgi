@@ -1,31 +1,9 @@
 package io.github.jbreathe.corgi.mapper;
 
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 import io.github.jbreathe.corgi.api.Mapper;
-import io.github.jbreathe.corgi.mapper.codegen.Assignment;
-import io.github.jbreathe.corgi.mapper.codegen.BooleanExpression;
-import io.github.jbreathe.corgi.mapper.codegen.Expression;
-import io.github.jbreathe.corgi.mapper.codegen.IfStatement;
-import io.github.jbreathe.corgi.mapper.codegen.MethodCall;
-import io.github.jbreathe.corgi.mapper.codegen.VarReference;
-import io.github.jbreathe.corgi.mapper.model.CustomMethodModifier;
-import io.github.jbreathe.corgi.mapper.model.DefaultConstructor;
-import io.github.jbreathe.corgi.mapper.model.Getter;
-import io.github.jbreathe.corgi.mapper.model.InitMethod;
-import io.github.jbreathe.corgi.mapper.model.JavaModelParser;
-import io.github.jbreathe.corgi.mapper.model.MappingClass;
-import io.github.jbreathe.corgi.mapper.model.MappingMethod;
-import io.github.jbreathe.corgi.mapper.model.ModelParsingException;
-import io.github.jbreathe.corgi.mapper.model.PreConditionMethod;
-import io.github.jbreathe.corgi.mapper.model.ReadMethod;
-import io.github.jbreathe.corgi.mapper.model.Setter;
-import io.github.jbreathe.corgi.mapper.model.Struct;
-import io.github.jbreathe.corgi.mapper.model.WriteMethod;
+import io.github.jbreathe.corgi.mapper.codegen.*;
+import io.github.jbreathe.corgi.mapper.model.*;
 import io.github.jbreathe.corgi.mapper.model.core.Field;
 import io.github.jbreathe.corgi.mapper.model.core.Type;
 import io.github.jbreathe.corgi.mapper.model.core.TypeDeclaration;
@@ -49,6 +27,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -186,11 +165,21 @@ public class CorgiProcessor extends AbstractProcessor {
             return readMethod.generateCall(mappingMethod, field);
         } else {
             Struct producer = mappingMethod.getProducer();
-            Getter readMethod = producer.findGetter(field);
-            if (readMethod == null) {
-                throw new ProcessingException("Getter for field '" + field.getName() + "' not found in type '" + producer.getType() + "'");
+            final String fieldName = field.getName();
+            final String mappedFieldName = mappingMethod.getFieldNameMap().get(fieldName);
+            final Optional<Getter> readMethod;
+            if (mappedFieldName != null) {
+                readMethod = producer.getField(mappedFieldName)
+                        .map(producer::findGetter);
+            } else {
+                readMethod = Optional.ofNullable(producer.findGetter(field));
             }
-            return readMethod.generateCall(mappingMethod.getProducerVar().createReference());
+            System.out.println(fieldName);
+            if (readMethod.isEmpty()) {
+                throw new ProcessingException("Getter for field '" + fieldName + "' not found in type '" + producer.getType() + "'");
+            } else {
+                return readMethod.get().generateCall(mappingMethod.getProducerVar().createReference());
+            }
         }
     }
 

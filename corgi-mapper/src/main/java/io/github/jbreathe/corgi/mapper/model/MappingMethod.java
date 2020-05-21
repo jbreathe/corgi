@@ -1,11 +1,13 @@
 package io.github.jbreathe.corgi.mapper.model;
 
+import io.github.jbreathe.corgi.api.FieldMapping;
 import io.github.jbreathe.corgi.api.Mapping;
 import io.github.jbreathe.corgi.mapper.model.core.TypeDeclaration;
 import io.github.jbreathe.corgi.mapper.model.core.VarDeclaration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,13 +26,14 @@ public final class MappingMethod {
     private final Struct consumer;
     private final VarDeclaration consumerVar;
     private final Struct fieldsSource;
+    private final Map<String, String> fieldNameMap;
 
     private MappingMethod(String name, TypeDeclaration resultType,
                           List<VarDeclaration> parameters, Map<String, VarDeclaration> parametersMap,
                           String initName, String readName, String writeName,
                           String preConditionName, Struct producer, VarDeclaration producerVar,
                           Struct consumer, VarDeclaration consumerVar,
-                          Struct fieldsSource) {
+                          Struct fieldsSource, Map<String, String> fieldNameMap) {
         this.name = name;
         this.resultType = resultType;
         this.parameters = parameters;
@@ -44,6 +47,7 @@ public final class MappingMethod {
         this.consumer = consumer;
         this.consumerVar = consumerVar;
         this.fieldsSource = fieldsSource;
+        this.fieldNameMap = fieldNameMap;
     }
 
     static Builder fromNameAndResultType(String name, TypeDeclaration resultType) {
@@ -114,6 +118,10 @@ public final class MappingMethod {
         return fieldsSource;
     }
 
+    public Map<String, String> getFieldNameMap() {
+        return fieldNameMap;
+    }
+
     @Nullable
     public VarDeclaration findParameter(String name) {
         return parametersMap.get(name);
@@ -132,6 +140,7 @@ public final class MappingMethod {
         private Struct consumer;
         private VarDeclaration consumerVar;
         private Struct fieldsSource;
+        private Map<String, String> fieldNameMap;
 
         private Builder(String name, TypeDeclaration resultType) {
             this.name = name;
@@ -148,6 +157,9 @@ public final class MappingMethod {
             this.readName = mapping.read();
             this.writeName = mapping.write();
             this.preConditionName = mapping.preCondition();
+            this.fieldNameMap = Arrays
+                    .stream(mapping.fieldMappings())
+                    .collect(Collectors.toUnmodifiableMap(FieldMapping::from, FieldMapping::to));
             return this;
         }
 
@@ -178,8 +190,21 @@ public final class MappingMethod {
 
         MappingMethod build() {
             Map<String, VarDeclaration> parametersMap = parameters.stream().collect(Collectors.toMap(VarDeclaration::getName, v -> v));
-            return new MappingMethod(name, resultType, parameters, parametersMap,
-                    initName, readName, writeName, preConditionName, producer, producerVar, consumer, consumerVar, fieldsSource);
+            return new MappingMethod(
+                    name,
+                    resultType,
+                    parameters,
+                    parametersMap,
+                    initName,
+                    readName,
+                    writeName,
+                    preConditionName,
+                    producer,
+                    producerVar,
+                    consumer,
+                    consumerVar,
+                    fieldsSource,
+                    fieldNameMap);
         }
     }
 }

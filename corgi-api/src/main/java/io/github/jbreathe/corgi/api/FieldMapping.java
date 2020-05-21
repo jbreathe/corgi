@@ -8,20 +8,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.METHOD)
-public @interface Mapping {
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface FieldMapping {
     @NotNull
-    String init() default "";
+    String from();
 
     @NotNull
-    String read() default "";
-
-    @NotNull
-    String write() default "";
-
-    @NotNull
-    String preCondition() default "";
-
-    @NotNull
-    FieldMapping[] fieldMappings() default {};
+    String to();
 }
