@@ -159,7 +159,7 @@ public final class MappingMethod {
             this.preConditionName = mapping.preCondition();
             this.fieldNameMap = Arrays
                     .stream(mapping.fieldMappings())
-                    .collect(Collectors.toUnmodifiableMap(FieldMapping::from, FieldMapping::to));
+                    .collect(Collectors.toUnmodifiableMap(FieldMapping::target, FieldMapping::source));
             return this;
         }
 
