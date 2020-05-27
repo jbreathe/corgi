@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface FieldMapping {
     @NotNull
-    String from();
+    String source();
 
     @NotNull
-    String to();
+    String target();
 }

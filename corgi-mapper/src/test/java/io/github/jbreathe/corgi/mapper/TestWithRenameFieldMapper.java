@@ -7,7 +7,7 @@ import io.github.jbreathe.corgi.api.Mapping;
 @Mapper
 public interface TestWithRenameFieldMapper {
 
-    @Mapping(fieldMappings = @FieldMapping(from = "a", to = "b"))
+    @Mapping(fieldMappings = @FieldMapping(source = "b", target = "a"))
     AClass map(BClass bClass);
 
     class AClass {
