@@ -18,6 +18,7 @@
         <spoon-core.version>8.0.0</spoon-core.version>
         <assertj.version>3.11.1</assertj.version>
         <compile-testing.version>0.18</compile-testing.version>
+        <joor.version>0.9.13</joor.version>
     </properties>
 
     <dependencies>
@@ -60,6 +61,12 @@
             <groupId>com.google.testing.compile</groupId>
             <artifactId>compile-testing</artifactId>
             <version>${compile-testing.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>joor</artifactId>
+            <version>${joor.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

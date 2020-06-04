@@ -1,14 +1,9 @@
 package io.github.jbreathe.corgi.mapper;
 
-import com.google.testing.compile.Compilation;
-import com.google.testing.compile.Compiler;
-import com.google.testing.compile.JavaFileObjects;
 import org.intellij.lang.annotations.Language;
+import org.joor.CompileOptions;
+import org.joor.Reflect;
 import org.junit.jupiter.api.Test;
-
-import javax.tools.JavaFileObject;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CorgiProcessorTest {
     @Test
@@ -44,15 +39,11 @@ class CorgiProcessorTest {
                     }
                 }
                 """;
-//        JavaFileObject input = JavaFileObjects.forSourceString("org.example.MyMapper", code);
-        JavaFileObject input = JavaFileObjects.forResource("MyMapper.java");
-        CorgiProcessor processor = new CorgiProcessor();
-        Compiler compiler = Compiler.javac()
-//                .withOptions("--source", "8", "--target", "8")
-                .withOptions("--release", "9")
-                .withProcessors(processor);
-        Compilation compilation = compiler.compile(input);
-        System.out.println(compilation.errors());
-        assertEquals(0, compilation.errors().size());
+        CompileOptions compileOptions = new CompileOptions().processors(new CorgiProcessor())
+                .options("--release", "9");
+        Reflect.compile(
+                "org.example.MyMapper",
+                code,
+                compileOptions);
     }
 }
