@@ -25,6 +25,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -166,20 +167,15 @@ public class CorgiProcessor extends AbstractProcessor {
         } else {
             Struct producer = mappingMethod.getProducer();
             final String fieldName = field.getName();
-            final String mappedFieldName = mappingMethod.getFieldNameMap().get(fieldName);
-            final Optional<Getter> readMethod;
-            if (mappedFieldName != null) {
-                readMethod = producer.getField(mappedFieldName)
-                        .map(producer::findGetter);
-            } else {
-                readMethod = Optional.ofNullable(producer.findGetter(field));
-            }
-            System.out.println(fieldName);
-            if (readMethod.isEmpty()) {
-                throw new ProcessingException("Getter for field '" + fieldName + "' not found in type '" + producer.getType() + "'");
-            } else {
-                return readMethod.get().generateCall(mappingMethod.getProducerVar().createReference());
-            }
+            return Optional.ofNullable(mappingMethod
+                    .findFieldByName(fieldName)
+                    .flatMap(producer::getField)
+                    .map(producer::findGetter)
+                    .orElseGet(() -> producer.findGetter(field)))
+                    .orElseThrow(() ->
+                            new ProcessingException(MessageFormat
+                                    .format("Getter for field ''{0}'' not found in type ''{1}''", fieldName, producer.getType())))
+                    .generateCall(mappingMethod.getProducerVar().createReference());
         }
     }
 
