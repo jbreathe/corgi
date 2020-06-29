@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class MappingMethod {
@@ -120,6 +121,10 @@ public final class MappingMethod {
 
     public Map<String, String> getFieldNameMap() {
         return fieldNameMap;
+    }
+
+    public Optional<String> findFieldByName(String name) {
+        return Optional.ofNullable(fieldNameMap.get(name));
     }
 
     @Nullable
